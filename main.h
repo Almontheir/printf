@@ -73,9 +73,40 @@ struct fmt
 typedef struct fmt fmt_t;
 
 
-int _printf(const char *format, ...);
+int _printf(const char *format, ...)
+{
+    va_list list;
+    int count = 0;
 
-int handle_print(const char *fmt, int i, va_list list, char buffer[], int flags, int width, int precision, int size);
+    va_start(list, format);
+
+    while (*format != '\0') {
+        if (*format == '%') {
+            switch (*(++format)) {
+                case 'c':
+                    count += handle_print(format, i, list, va_arg(list, int));
+                    break;
+                case 's':
+                    count += handle_print(format, i, list, va_arg(list, char *));
+                    break;
+                case '%':
+                    count += handle_print(format, i, list, '%');
+                    break;
+                default:
+                    // Ignore unknown format specifiers.
+                    break;
+            }
+        } else {
+            count += handle_print(format, i, list, *format);
+        }
+
+        format++;
+    }
+
+    va_end(list);
+
+    return count;
+}
 
 
 va_list list, char buffer[], int flags, int width, int precision, int size)
